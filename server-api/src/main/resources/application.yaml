@@ -1,0 +1,23 @@
+server:
+  port: 8080
+spring:
+  profiles:
+    include: oauth
+  datasource:
+    url: jdbc:mariadb://localhost:3306/moment
+    username: root
+    password: root
+    hikari:
+      max-lifetime: 57000
+      maximum-pool-size: 24
+    driver-class-name: org.mariadb.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        default_batch_fetch_size: 100
+    database: mysql
+    database-platform: org.hibernate.dialect.MySQL8Dialect

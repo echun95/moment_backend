@@ -1,1 +1,5 @@
 rootProject.name = 'app'
+include 'module-core'
+include 'server-api'
+include 'server-batch'
+

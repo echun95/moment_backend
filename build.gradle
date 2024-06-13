@@ -4,12 +4,12 @@ plugins {
 	id 'io.spring.dependency-management' version '1.1.5'
 }
 
-group = 'com.moment'
-version = '0.0.1-SNAPSHOT'
 
-java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
+allprojects {
+	group = 'com.moment'
+	version = '0.0.1'
+	repositories {
+		mavenCentral()
 	}
 }
 
@@ -19,23 +19,44 @@ configurations {
 	}
 }
 
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
 repositories {
 	mavenCentral()
 }
 
-dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	compileOnly 'org.projectlombok:lombok'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.security:spring-security-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-}
+subprojects{
+	apply plugin: 'java'
+	apply plugin: 'org.springframework.boot'
+	apply plugin: 'io.spring.dependency-management'
+	compileJava.options.encoding = 'UTF-8'
 
-tasks.named('test') {
-	useJUnitPlatform()
+	dependencies {
+		//spring
+		implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+		developmentOnly("org.springframework.boot:spring-boot-devtools")
+		//lombok
+		compileOnly 'org.projectlombok:lombok'
+		annotationProcessor 'org.projectlombok:lombok'
+		//db
+		runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+		// https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
+		implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
+
+
+		//test
+//		testImplementation platform('org.junit:junit-bom:5.9.1')
+//		testImplementation 'org.junit.jupiter:junit-jupiter'
+		//test
+		testImplementation 'org.springframework.boot:spring-boot-starter-test'
+		testImplementation 'org.springframework.security:spring-security-test'
+		testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	}
+	tasks.named('test') {
+		useJUnitPlatform()
+	}
 }
