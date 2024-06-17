@@ -60,3 +60,37 @@ subprojects{
 		useJUnitPlatform()
 	}
 }
+
+project(":server-api"){
+	bootJar{
+		enabled = true
+	}
+	jar{
+		enabled = false
+	}
+	dependencies {
+		implementation(project(":module-core"))
+	}
+}
+project(":server-batch"){
+	bootJar{
+		enabled = true
+	}
+	jar{
+		enabled = false
+	}
+	dependencies {
+		implementation(project(":module-core"))
+	}
+}
+project(":module-core"){
+	bootJar{
+		enabled = false
+	}
+	jar{
+		enabled = true
+	}
+	dependencies {
+	}
+}
+bootJar { enabled = false }
