@@ -1,0 +1,33 @@
+server:
+  port: 8080
+spring:
+  security:
+    jwt:
+      secret: bW9tZW50and0c2VjcmV0IUA=bW9tZW50and0c2VjcmV0IUA=bW9tZW50and0c2VjcmV0IUA=bW9tZW50and0c2VjcmV0IUA= #momentjwtsecret!@
+      token:
+        access:
+          expire-length: 300000 # 5분
+          #expire-length: 1000 # 1 min
+        refresh:
+          expire-length: 600000 # 10분
+          #expire-length: 1209600000 # 2 Weeks
+  profiles:
+    include: oauth
+  datasource:
+    url: jdbc:mariadb://localhost:3306/moment
+    username: root
+    password: root
+    hikari:
+      max-lifetime: 57000
+      maximum-pool-size: 24
+    driver-class-name: org.mariadb.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        default_batch_fetch_size: 100
+    database: mysql
+    database-platform: org.hibernate.dialect.MySQL8Dialect

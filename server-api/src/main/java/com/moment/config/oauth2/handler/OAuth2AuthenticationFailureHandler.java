@@ -29,8 +29,8 @@ public class OAuth2AuthenticationFailureHandler implements AuthenticationFailure
 		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
 		ErrorResponse errorResponse = ErrorResponse.builder()
-			.resultCode(HttpServletResponse.SC_UNAUTHORIZED)
-			.resultMsg("사용자 인증에 실패하였습니다.")
+			.code(HttpServletResponse.SC_UNAUTHORIZED)
+			.message("사용자 인증에 실패하였습니다.")
 			.build();
 
 		final ObjectMapper mapper = new ObjectMapper();

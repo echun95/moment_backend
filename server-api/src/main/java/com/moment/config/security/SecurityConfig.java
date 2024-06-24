@@ -37,11 +37,6 @@ public class SecurityConfig{
     private final AuthenticationAccessDeniedHandler accessDeniedHandler;
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
         http.cors(AbstractHttpConfigurer::disable);
         http.sessionManagement(httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
@@ -49,7 +44,8 @@ public class SecurityConfig{
         http.httpBasic(AbstractHttpConfigurer::disable);
         http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/oauth2/authorization/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/private/**").authenticated()
+                .requestMatchers("/error").permitAll()
+                .requestMatchers(HttpMethod.GET, "/test/**").authenticated()
                 .requestMatchers("/admin/**").hasRole(ROLE_ADMIN)
                 .anyRequest().authenticated()
         );

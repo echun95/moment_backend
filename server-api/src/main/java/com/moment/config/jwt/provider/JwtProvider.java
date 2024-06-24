@@ -4,11 +4,14 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
@@ -19,16 +22,17 @@ import java.util.Date;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtProvider {
 
-    @Value("{spring.security.jwt.token.access.expire-length}")
-    private static final long accessTokenExpirationMs = 1000 * 60 * 30; // 30 mins
-    @Value("{spring.security.jwt.token.refresh.expire-length}")
-    private static final long refreshTokenExpirationMs = 1000 * 60 * 30; // 30 mins
+    @Value("${spring.security.jwt.token.access.expire-length}")
+    private String accessTokenExpirationMs;
+    @Value("${spring.security.jwt.token.refresh.expire-length}")
+    private String refreshTokenExpirationMs;
 
     private final UserDetailsService userDetailsService;
 
-    @Value("{spring.security.jwt.secret}")
+    @Value("${spring.security.jwt.secret}")
     private String secretKey;
 
 
@@ -42,7 +46,7 @@ public class JwtProvider {
         return generateToken(userId, refreshTokenExpirationMs);
     }
 
-    public String generateToken(Long userId, long tokenExpirationMs) {
+    public String generateToken(Long userId, String tokenExpirationMs) {
         // Claims 란 JWT의 payload 부분에 들어가는 데이터 단위라고 보면 된다.
         // Map<String, Object>를 상속하고 있기 때문에 key, value 형식으로 값을 넣을 수 있다.
         Claims claims = Jwts.claims().setSubject(String.valueOf(userId)); // username
@@ -50,7 +54,7 @@ public class JwtProvider {
         // 토큰 생성 시간
         Date now = new Date();
         // 토큰 만료 시간
-        Date expireDate = new Date(now.getTime() + tokenExpirationMs);
+        Date expireDate = new Date(now.getTime() + Long.parseLong(tokenExpirationMs));
         return Jwts.builder()
             .setClaims(claims)
             .setIssuedAt(now)
@@ -82,19 +86,21 @@ public class JwtProvider {
 
     // 토큰에서 Claims 추출
     private Claims getClaims(String token) {
-        Claims claims;
+        Claims claims = null;
         try {
             claims = Jwts.parserBuilder().setSigningKey(key()).build().parseClaimsJws(token).getBody();
         } catch (SignatureException e) {
-            throw new BadCredentialsException("잘못된 비밀키", e);
+            log.error("잘못된 비밀키: {}", e.getMessage());
+            throw new AuthenticationException("잘못된 비밀키:", e) {};
         } catch (ExpiredJwtException e) {
-            throw new BadCredentialsException("만료된 토큰", e);
+            log.error("만료된 토큰: {}", e.getMessage());
+            throw new AuthenticationException("만료된 토큰:", e) {};
         } catch (MalformedJwtException e) {
-            throw new BadCredentialsException("유효하지 않은 구성의 토큰", e);
+            log.error("유효하지 않은 구성의 토큰: {}", e.getMessage());
         } catch (UnsupportedJwtException e) {
-            throw new BadCredentialsException("지원되지 않는 형식이나 구성의 토큰", e);
+            log.error("지원되지 않는 형식이나 구성의 토큰: {}", e.getMessage());
         } catch (IllegalArgumentException e) {
-            throw new BadCredentialsException("잘못된 입력값", e);
+            log.error("잘못된 입력값: {}", e.getMessage());
         }
         return claims;
     }

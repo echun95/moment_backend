@@ -8,8 +8,8 @@ import org.springframework.validation.FieldError;
 import java.util.List;
 
 @Builder
-public record ErrorResponse(@JsonProperty("resultCode") int resultCode,
-                            @JsonProperty("resultMsg") String resultMsg
+public record ErrorResponse(@JsonProperty("code") int code,
+                            @JsonProperty("message") String message
 	, @JsonInclude(JsonInclude.Include.NON_EMPTY) List<ValidationError> errors) {
 
 	@Builder
