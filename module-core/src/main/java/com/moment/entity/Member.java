@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -37,6 +39,9 @@ public class Member extends BaseEntity {
     @Column(name = "PROFILE_IMAGE_URL")
     private Gender profileImageUrl;
 
+    @Column(name = "BIRTH")
+    private LocalDate birth;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "ROLE")
     private Role role;
@@ -49,18 +54,22 @@ public class Member extends BaseEntity {
     private String refreshToken;
 
     @Builder
-    public Member(String name, String password, String email, String phoneNumber, Gender gender, Gender profileImageUrl, Role role, String provider, String providerId, String refreshToken) {
+    public Member(Long memberId, String name, String password, String email, String phoneNumber, Gender gender, Gender profileImageUrl, LocalDate birth, Role role, String provider, String providerId, String refreshToken) {
+        this.memberId = memberId;
         this.name = name;
         this.password = password;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.gender = gender;
         this.profileImageUrl = profileImageUrl;
+        this.birth = birth;
         this.role = role;
         this.provider = provider;
         this.providerId = providerId;
         this.refreshToken = refreshToken;
     }
+
+
 
 
     public void updateRefreshToken(String refreshToken) {

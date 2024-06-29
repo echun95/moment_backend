@@ -44,6 +44,7 @@ public class SecurityConfig{
         http.httpBasic(AbstractHttpConfigurer::disable);
         http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/oauth2/authorization/**").permitAll()
+                .requestMatchers("/favicon.ico").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers(HttpMethod.GET, "/test/**").authenticated()
                 .requestMatchers("/admin/**").hasRole(ROLE_ADMIN)
