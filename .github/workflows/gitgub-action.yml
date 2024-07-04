@@ -81,13 +81,13 @@
         - name: Docker build & push to moment-api-server-prod
           if: contains(github.ref, 'main')
           uses: docker/build-push-action@v5.1.0
-            with:
-              context: ./server-api
-              file: server-api/Dockerfile-prod
-              push: true
-              tags: ${{ secrets.DOCKER_USERNAME }}/moment-api-server-prod:${{ steps.extract_image_tag.outputs.image-tag }}
-              cache-from: type=gha
-              cache-to: type=gha,mode=max
+          with:
+            context: ./server-api
+            file: server-api/Dockerfile-prod
+            push: true
+            tags: ${{ secrets.DOCKER_USERNAME }}/moment-api-server-prod:${{ steps.extract_image_tag.outputs.image-tag }}
+            cache-from: type=gha
+            cache-to: type=gha,mode=max
 #          run: |
 #            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
 #            docker build -f Dockerfile-prod -t ${{ secrets.DOCKER_USERNAME }}/moment-api-server-prod .
@@ -97,17 +97,17 @@
         - name: Docker build & push to moment-batch-server-prod
           if: contains(github.ref, 'main')
           uses: docker/build-push-action@v5.1.0
-            with:
-              context: ./server-batch
-              file: server-batch/Dockerfile-prod
-              push: true
-              tags: ${{ secrets.DOCKER_USERNAME }}/moment-batch-server-prod:${{ steps.extract_image_tag.outputs.image-tag }}
-              cache-from: type=gha
-              cache-to: type=gha,mode=max
+          with:
+            context: ./server-batch
+            file: server-batch/Dockerfile-prod
+            push: true
+            tags: ${{ secrets.DOCKER_USERNAME }}/moment-batch-server-prod:${{ steps.extract_image_tag.outputs.image-tag }}
+            cache-from: type=gha
+            cache-to: type=gha,mode=max
         # docker build & push to production
         - name: Docker build & push to moment-api-server-dev
-        if: contains(github.ref, 'develop')
-        uses: docker/build-push-action@v5.1.0
+          if: contains(github.ref, 'develop')
+          uses: docker/build-push-action@v5.1.0
           with:
             context: ./server-api
             file: server-api/Dockerfile-dev
@@ -120,13 +120,13 @@
         - name: Docker build & push to moment-batch-server-dev
           if: contains(github.ref, 'develop')
           uses: docker/build-push-action@v5.1.0
-            with:
-              context: ./server-batch
-              file: server-batch/Dockerfile-dev
-              push: true
-              tags: ${{ secrets.DOCKER_USERNAME }}/moment-batch-server-dev:${{ steps.extract_image_tag.outputs.image-tag }}
-              cache-from: type=gha
-              cache-to: type=gha,mode=max
+          with:
+            context: ./server-batch
+            file: server-batch/Dockerfile-dev
+            push: true
+            tags: ${{ secrets.DOCKER_USERNAME }}/moment-batch-server-dev:${{ steps.extract_image_tag.outputs.image-tag }}
+            cache-from: type=gha
+            cache-to: type=gha,mode=max
 
         ## deploy to production
 #        - name: Deploy to prod
