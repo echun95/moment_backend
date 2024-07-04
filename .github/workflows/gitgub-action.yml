@@ -1,0 +1,151 @@
+  #github repository actions 페이지에 나타날 이름
+  name: CI/CD using github actions & docker
+
+  # event trigger
+  # main이나 develop 브랜치에 push가 되었을 때 실행
+  on:
+    push:
+      branches: [ "main", "develop" ]
+
+  permissions:
+    contents: read
+
+  jobs:
+    CI-CD:
+      runs-on: ubuntu-latest
+      outputs:
+        image-tag: ${{ steps.extract_image_tag.outputs.image-tag }}
+      steps:
+        # JDK setting - github actions에서 사용할 JDK 설정 (프로젝트나 AWS의 java 버전과 달라도 무방)
+        - uses: actions/checkout@v3
+        - name: Set up JDK 17
+          uses: actions/setup-java@v3
+          with:
+            java-version: '17'
+            distribution: 'temurin'
+            cache: gradle
+
+        # gradle caching - 빌드 시간 향상
+        - name: Gradle Caching
+          uses: actions/cache@v3
+          with:
+            path: |
+              ~/.gradle/caches
+              ~/.gradle/wrapper
+            key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+            restore-keys: |
+              ${{ runner.os }}-gradle-
+
+        # 환경별 yml 파일 생성 - dev
+        - name: make application-dev.yml
+          if: |
+            contains(github.ref, 'main') ||
+            contains(github.ref, 'develop')
+          run: |
+            cd ./src/main/resources
+            touch ./application-dev.yml
+            echo "${{ secrets.YML_DEV }}" > ./application-dev.yml # github actions에서 설정한 값을 application.yml 파일에 쓰기
+          shell: bash
+
+        # gradle build
+        - name: Build with Gradle
+          run: ./gradlew clean bootJar -x test
+
+        # set tag
+        - name: Set Image Tag
+            id: extract_image_tag
+            run: |
+              IMAGE_TAG=dev-$(git rev-parse --short=4 HEAD)
+              echo "image-tag=$IMAGE_TAG"
+              echo "image-tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+        # docker에 로그인
+        - name: docker 로그인
+          uses: docker/login-action@v3.0.0
+          with:
+            username: ${{ secrets.HARBOR_USERNAME }}
+            password: ${{ secrets.HARBOR_PASSWORD }}
+
+        # docker build & push to production
+        - name: Docker build & push to moment-api-server-prod
+          if: contains(github.ref, 'main')
+          uses: docker/build-push-action@v5.1.0
+            with:
+              context: ./server-api
+              file: server-api/Dockerfile-prod
+              push: true
+              tags: ${{ secrets.DOCKER_USERNAME }}/moment-api-server-prod:${{ steps.extract_image_tag.outputs.image-tag }}
+              cache-from: type=gha
+              cache-to: type=gha,mode=max
+#          run: |
+#            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+#            docker build -f Dockerfile-prod -t ${{ secrets.DOCKER_USERNAME }}/moment-api-server-prod .
+#            docker push ${{ secrets.DOCKER_USERNAME }}/moment-api-server-prod
+
+        # docker build & push to production
+        - name: Docker build & push to moment-batch-server-prod
+          if: contains(github.ref, 'main')
+          uses: docker/build-push-action@v5.1.0
+            with:
+              context: ./server-batch
+              file: server-batch/Dockerfile-prod
+              push: true
+              tags: ${{ secrets.DOCKER_USERNAME }}/moment-batch-server-prod:${{ steps.extract_image_tag.outputs.image-tag }}
+              cache-from: type=gha
+              cache-to: type=gha,mode=max
+        # docker build & push to production
+        - name: Docker build & push to moment-api-server-dev
+        if: contains(github.ref, 'develop')
+        uses: docker/build-push-action@v5.1.0
+          with:
+            context: ./server-api
+            file: server-api/Dockerfile-dev
+            push: true
+            tags: ${{ secrets.DOCKER_USERNAME }}/moment-api-server-dev:${{ steps.extract_image_tag.outputs.image-tag }}
+            cache-from: type=gha
+            cache-to: type=gha,mode=max
+
+        # docker build & push to production
+        - name: Docker build & push to moment-batch-server-dev
+          if: contains(github.ref, 'develop')
+          uses: docker/build-push-action@v5.1.0
+            with:
+              context: ./server-batch
+              file: server-batch/Dockerfile-dev
+              push: true
+              tags: ${{ secrets.DOCKER_USERNAME }}/moment-batch-server-dev:${{ steps.extract_image_tag.outputs.image-tag }}
+              cache-from: type=gha
+              cache-to: type=gha,mode=max
+
+        ## deploy to production
+#        - name: Deploy to prod
+#          uses: appleboy/ssh-action@master
+#          id: deploy-prod
+#          if: contains(github.ref, 'main')
+#          with:
+#            host: ${{ secrets.HOST_PROD }} # EC2 퍼블릭 IPv4 DNS
+#            username: ubuntu
+#            key: ${{ secrets.PRIVATE_KEY }}
+#            envs: GITHUB_SHA
+#            script: |
+#              sudo docker ps
+#              sudo docker pull ${{ secrets.DOCKER_USERNAME }}/docker-test-prod
+#              sudo docker run -d -p 8082:8082 ${{ secrets.DOCKER_USERNAME }}/docker-test-prod
+#              sudo docker image prune -f
+
+#        ## deploy to develop
+#        - name: Deploy to dev
+#          uses: appleboy/ssh-action@master
+#          id: deploy-dev
+#          if: contains(github.ref, 'develop')
+#          with:
+#            host: ${{ secrets.HOST_DEV }} # EC2 퍼블릭 IPv4 DNS
+#            username: ${{ secrets.USERNAME }} # ubuntu
+#            password: ${{ secrets.PASSWORD }}
+#            port: 22
+#            key: ${{ secrets.PRIVATE_KEY }}
+#            script: |
+#              sudo docker ps
+#              sudo docker pull ${{ secrets.DOCKER_USERNAME }}/docker-test-dev
+#              sudo docker run -d -p 8081:8081 ${{ secrets.DOCKER_USERNAME }}/docker-test-dev
+#              sudo docker image prune -f

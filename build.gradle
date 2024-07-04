@@ -64,6 +64,9 @@ subprojects{
 project(":server-api"){
 	bootJar{
 		enabled = true
+		archivesBaseName = 'moment-api-server'
+		archiveFileName = 'moment-api-server.jar'
+		archiveVersion = '0.0.1'
 	}
 	jar{
 		enabled = false
@@ -75,6 +78,9 @@ project(":server-api"){
 project(":server-batch"){
 	bootJar{
 		enabled = true
+		archivesBaseName = 'moment-batch-server'
+		archiveFileName = 'moment-batch-server.jar'
+		archiveVersion = '0.0.1'
 	}
 	jar{
 		enabled = false
