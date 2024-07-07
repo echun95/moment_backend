@@ -139,6 +139,7 @@
             host: ${{ secrets.HOST_DEV }} # EC2 퍼블릭 IPv4 DNS
             username: ${{ secrets.USERNAME }}
             key: ${{ secrets.PRIVATE_KEY }}
+            port: 22
             envs: GITHUB_SHA
             script: |
               sudo docker rm -f $(docker ps -qa)
