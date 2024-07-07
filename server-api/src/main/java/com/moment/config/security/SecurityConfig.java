@@ -45,8 +45,8 @@ public class SecurityConfig{
         http.httpBasic(AbstractHttpConfigurer::disable);
         http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/oauth2/authorization/**").permitAll()
-                .requestMatchers("/favicon.ico").permitAll()
-                .requestMatchers("/error").permitAll()
+                .requestMatchers("/swagger", "/swagger-ui.html", "/swagger-ui/**", "/api-docs", "/api-docs/**", "/v3/api-docs/**").permitAll()
+                .requestMatchers("/", "/error", "/favicon.ico", "/**/*.png", "/**/*.gif", "/**/*.svg", "/**/*.jpg", "/**/*.html", "/**/*.css", "/**/*.js").permitAll()
                 .requestMatchers(HttpMethod.GET, "/test/**").authenticated()
                 .requestMatchers("/admin/**").hasRole(ROLE_ADMIN)
                 .anyRequest().authenticated()
