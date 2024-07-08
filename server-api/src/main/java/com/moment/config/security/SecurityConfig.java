@@ -1,6 +1,7 @@
 package com.moment.config.security;
 
 import com.moment.config.jwt.filter.JwtAuthFilter;
+import com.moment.config.jwt.filter.JwtAuthenticationExceptionFilter;
 import com.moment.config.jwt.handler.AuthEntryPointHandler;
 import com.moment.config.jwt.handler.AuthenticationAccessDeniedHandler;
 import com.moment.config.oauth2.handler.OAuth2AuthenticationFailureHandler;
@@ -35,7 +36,7 @@ public class SecurityConfig{
     private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
     private final AuthEntryPointHandler authEntryPointHandler;
     private final AuthenticationAccessDeniedHandler accessDeniedHandler;
-
+    private final JwtAuthenticationExceptionFilter jwtAuthenticationExceptionFilter;
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
 //        http.cors(AbstractHttpConfigurer::disable);
@@ -46,7 +47,7 @@ public class SecurityConfig{
         http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/oauth2/authorization/**").permitAll()
                 .requestMatchers("/swagger", "/swagger-ui.html", "/swagger-ui/**", "/api-docs", "/api-docs/**", "/v3/api-docs/**").permitAll()
-                .requestMatchers("/", "/error", "/favicon.ico", "/**/*.png", "/**/*.gif", "/**/*.svg", "/**/*.jpg", "/**/*.html", "/**/*.css", "/**/*.js").permitAll()
+                .requestMatchers("/", "/error", "/favicon.ico", "*.png", "*.gif", "*.svg", "*.jpg", "*.html", "*.css", "*.js").permitAll()
                 .requestMatchers(HttpMethod.GET, "/test/**").authenticated()
                 .requestMatchers("/admin/**").hasRole(ROLE_ADMIN)
                 .anyRequest().authenticated()
@@ -59,6 +60,7 @@ public class SecurityConfig{
         );
 
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtAuthenticationExceptionFilter, JwtAuthFilter.class);
 
         http.exceptionHandling(httpSecurityExceptionHandlingConfigurer -> httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(authEntryPointHandler));
         http.exceptionHandling(httpSecurityExceptionHandlingConfigurer -> httpSecurityExceptionHandlingConfigurer.accessDeniedHandler(accessDeniedHandler));

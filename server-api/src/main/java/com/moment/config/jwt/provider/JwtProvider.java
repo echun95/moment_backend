@@ -1,17 +1,16 @@
 package com.moment.config.jwt.provider;
 
+import com.moment.common.exception.CommonErrorCode;
+import com.moment.common.exception.CommonException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.SignatureException;
-import lombok.NoArgsConstructor;
+import io.jsonwebtoken.security.SecurityException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
@@ -89,18 +88,18 @@ public class JwtProvider {
         Claims claims = null;
         try {
             claims = Jwts.parserBuilder().setSigningKey(key()).build().parseClaimsJws(token).getBody();
-        } catch (SignatureException e) {
-            log.error("잘못된 비밀키: {}", e.getMessage());
-            throw new AuthenticationException("잘못된 비밀키:", e) {};
+        } catch (MalformedJwtException | SecurityException e) {
+            log.error("유효하지 않은 구성의 토큰: {}", e.getMessage());
+            throw new CommonException(CommonErrorCode.INVALID_TOKEN);
         } catch (ExpiredJwtException e) {
             log.error("만료된 토큰: {}", e.getMessage());
-            throw new AuthenticationException("만료된 토큰:", e) {};
-        } catch (MalformedJwtException e) {
-            log.error("유효하지 않은 구성의 토큰: {}", e.getMessage());
+            throw new CommonException(CommonErrorCode.EXPIRED_JWT);
         } catch (UnsupportedJwtException e) {
             log.error("지원되지 않는 형식이나 구성의 토큰: {}", e.getMessage());
+            throw new CommonException(CommonErrorCode.UNSUPPORTED_TOKEN);
         } catch (IllegalArgumentException e) {
             log.error("잘못된 입력값: {}", e.getMessage());
+            throw new CommonException(CommonErrorCode.WRONG_TOKEN);
         }
         return claims;
     }
