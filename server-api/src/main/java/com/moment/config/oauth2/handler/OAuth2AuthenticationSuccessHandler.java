@@ -5,10 +5,12 @@ import com.moment.config.oauth2.dto.PrincipalDetails;
 import com.moment.entity.Member;
 import com.moment.member.repository.MemberRepository;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,6 +33,8 @@ import java.util.Optional;
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 	private final JwtProvider jwtProvider;
 	private final MemberRepository memberRepository;
+	@Value("${oauth2.redirectUrl}")
+	private String redirectUrl;
 
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -41,8 +45,25 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 		String token = generateTokenByUserId(response, principal);
 
 		response.addHeader("Authorization", "Bearer " + token);
-		response.getWriter().write("{\"token\": \"" + token + "\"}");
-		response.getWriter().flush();
+
+		Cookie jwtCookie = new Cookie("jwt", token);
+		jwtCookie.setHttpOnly(true);
+		jwtCookie.setSecure(true);
+		jwtCookie.setPath("/");
+		jwtCookie.setMaxAge(60 * 60 * 24); // 쿠키 만료 시간 설정 (예: 1일)
+		response.addCookie(jwtCookie);
+//		response.getWriter().write("{\"token\": \"" + token + "\"}");
+//		response.getWriter().flush();
+
+		// 리디렉션 설정
+		String targetUrl = determineTargetUrl(request, response, authentication);
+		getRedirectStrategy().sendRedirect(request, response, targetUrl);
+	}
+
+	@Override
+	protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+		// 리디렉션할 URL 설정
+		return redirectUrl;
 	}
 
 	private String generateTokenByUserId(HttpServletResponse response, PrincipalDetails principalDetails) {

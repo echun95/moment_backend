@@ -22,3 +22,6 @@ spring:
     database: mysql
     database-platform: org.hibernate.dialect.MySQLDialect
     open-in-view: false
+
+oauth2:
+  redirectUrl: http://localhost:3000/
