@@ -48,7 +48,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
 		Cookie jwtCookie = new Cookie("jwt", token);
 		jwtCookie.setHttpOnly(true);
-		jwtCookie.setSecure(true);
+		jwtCookie.setSecure(false);
 		jwtCookie.setPath("/");
 		jwtCookie.setMaxAge(60 * 60 * 24); // 쿠키 만료 시간 설정 (예: 1일)
 		response.addCookie(jwtCookie);
