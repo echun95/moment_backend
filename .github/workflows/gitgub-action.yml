@@ -45,9 +45,9 @@ jobs:
         run: |
           cd ./server-api/src/main/resources
           touch ./application-dev.yml
-          echo "${{ secrets.YML_DEV }}" > ./application-dev.yml # github actions에서 설정한 값을 application.yml 파일에 쓰기
+          echo "${{ secrets.YML_DEV }}" > ./application-dev.yml # github actions에서 설정한 값을 application-dev.yml 파일에 쓰기
           touch ./application-oauth.yml
-          echo "${{ secrets.YML_OAUTH }}" > ./application-oauth.yml # github actions에서 설정한 값을 application.yml 파일에 쓰기
+          echo "${{ secrets.YML_OAUTH }}" > ./application-oauth.yml # github actions에서 설정한 값을 application-oauth.yml 파일에 쓰기
         shell: bash
 
       #batch는 나중에 따로 설정해야함
