@@ -30,7 +30,7 @@ public class OAuth2MemberService extends DefaultOAuth2UserService {
         OAuth2MemberInfo memberInfo = null;
         if (userRequest.getClientRegistration().getRegistrationId().equals("google")) {
             memberInfo = new GoogleMemberInfo(oAuth2User.getAttributes());
-        }else if(userRequest.getClientRegistration().getRegistrationId().equals("kakao")){
+        } else if (userRequest.getClientRegistration().getRegistrationId().equals("kakao")) {
             memberInfo = new KakaoMemberInfo(oAuth2User.getAttributes());
         }
         String provider = memberInfo.getProvider();
@@ -42,7 +42,7 @@ public class OAuth2MemberService extends DefaultOAuth2UserService {
         Optional<Member> findMember = memberRepository.findByEmail(memberInfo.getEmail());
         Member member;
         //회원가입
-        if(!findMember.isPresent()){
+        if (!findMember.isPresent()) {
             member = Member.builder()
                     .name(username)
                     .password(bCryptPasswordEncoder.encode(UUID.randomUUID().toString().substring(0, 6)))
@@ -50,9 +50,10 @@ public class OAuth2MemberService extends DefaultOAuth2UserService {
                     .providerId(providerId)
                     .email(email)
                     .role(role)
+                    .role(Role.ROLE_USER)
                     .build();
             memberRepository.save(member);
-        }else{
+        } else {
             member = findMember.get();
         }
         return new PrincipalDetails(member, oAuth2User.getAttributes());
