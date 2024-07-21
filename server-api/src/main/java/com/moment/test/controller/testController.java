@@ -3,14 +3,19 @@ package com.moment.test.controller;
 import com.moment.common.exception.RestApiException;
 import com.moment.common.exception.test.TestErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/test")
+@Slf4j
 public class testController {
 
     @GetMapping("/test")
@@ -26,6 +31,12 @@ public class testController {
     @GetMapping("/test2")
     @Operation(summary = "runtime err test")
     public ResponseEntity<String> test2(){
+        List<String> test = new ArrayList<>();
+        try {
+            String s = test.get(10);
+        }catch (RuntimeException e){
+            log.error(e.toString());
+        }
         throw new RuntimeException("test npe");
     }
 }

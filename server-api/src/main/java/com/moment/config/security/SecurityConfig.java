@@ -19,16 +19,12 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.Collections;
 import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSecurity
-public class SecurityConfig{
+public class SecurityConfig {
     public static final String ROLE_ADMIN = "ADMIN";
     private final OAuth2MemberService oAuth2MemberService;
     private final JwtAuthFilter jwtAuthFilter;
@@ -39,8 +35,9 @@ public class SecurityConfig{
     private final AuthEntryPointHandler authEntryPointHandler;
     private final AuthenticationAccessDeniedHandler accessDeniedHandler;
     private final JwtAuthenticationExceptionFilter jwtAuthenticationExceptionFilter;
+
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 //        http.cors(AbstractHttpConfigurer::disable);
         http.cors(cors -> cors.configurationSource(request -> {
             CorsConfiguration configuration = new CorsConfiguration();
@@ -55,6 +52,10 @@ public class SecurityConfig{
         http.httpBasic(AbstractHttpConfigurer::disable);
         http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/oauth2/authorization/**").permitAll()
+                .requestMatchers("/api/v1/test/**").permitAll()
+                .requestMatchers("/api/v1/members/join").permitAll()
+                .requestMatchers("/api/v1/members/send-authentication-email").permitAll()
+                .requestMatchers("/api/v1/members/verify-email").permitAll()
                 .requestMatchers("/swagger", "/swagger-ui.html", "/swagger-ui/**", "/api-docs", "/api-docs/**", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/", "/error", "/favicon.ico", "*.png", "*.gif", "*.svg", "*.jpg", "*.html", "*.css", "*.js").permitAll()
                 .requestMatchers(HttpMethod.GET, "/test/**").authenticated()
