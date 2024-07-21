@@ -4,6 +4,7 @@ import com.moment.common.dto.ResultDTO;
 import com.moment.common.exception.RestApiException;
 import com.moment.common.exception.member.MemberErrorCode;
 import com.moment.entity.Member;
+import com.moment.enums.Role;
 import com.moment.mail.service.EmailService;
 import com.moment.member.dto.JoinMemberDTO;
 import com.moment.member.dto.ReqEmailDTO;
@@ -76,6 +77,7 @@ public class MemberServiceImpl implements MemberService {
                 .name(joinMemberDTO.getName())
                 .gender(joinMemberDTO.getGender())
                 .birth(joinMemberDTO.getBirth())
+                .role(Role.ROLE_USER)
                 .password(bCryptPasswordEncoder.encode(joinMemberDTO.getPassword()))
                 .build();
     }
