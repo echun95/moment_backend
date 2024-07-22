@@ -22,6 +22,11 @@ spring:
     database: mysql
     database-platform: org.hibernate.dialect.MySQLDialect
     open-in-view: false
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 1234
 
 oauth2:
   redirectUrl: http://localhost:3000/
