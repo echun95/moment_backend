@@ -3,10 +3,12 @@ package com.moment.member.service;
 import com.moment.common.dto.ResultDTO;
 import com.moment.common.exception.RestApiException;
 import com.moment.common.exception.member.MemberErrorCode;
+import com.moment.config.jwt.provider.JwtProvider;
 import com.moment.entity.Member;
 import com.moment.enums.Role;
 import com.moment.mail.service.EmailService;
 import com.moment.member.dto.JoinMemberDTO;
+import com.moment.member.dto.LoginDTO;
 import com.moment.member.dto.ReqEmailDTO;
 import com.moment.member.repository.MemberRepository;
 import com.moment.redis.service.RedisService;
@@ -31,6 +33,7 @@ public class MemberServiceImpl implements MemberService {
     @Value("${spring.mail.username}")
     private String momentAdminEmail;
     private final PasswordEncoder bCryptPasswordEncoder;
+    private final JwtProvider jwtProvider;
 
     @Override
     public void sendAuthenticationEmail(ReqEmailDTO reqEmailDTO) {
@@ -63,6 +66,34 @@ public class MemberServiceImpl implements MemberService {
         validateDuplicateMember(joinMemberDTO.getEmail());
         Member joinMember = createMember(joinMemberDTO);
         memberRepository.save(joinMember);
+    }
+
+    @Override
+    @Transactional
+    public LoginDTO.ResLoginDTO login(LoginDTO.ReqLoginDTO loginDTO) {
+        Member findMember = getMemberByEmail(loginDTO.getEmail());
+        validatePassword(loginDTO.getPassword(), findMember.getPassword());
+        //jwt 발급 및 refresh token 저장
+        String accessToken = jwtProvider.generateAccessTokenFromUserId(findMember.getMemberId());
+        String refreshToken = jwtProvider.generateRefreshTokenFromUserId(findMember.getMemberId());
+        findMember.updateRefreshToken(refreshToken);
+        LoginDTO.ResLoginDTO resLoginDTO = LoginDTO.ResLoginDTO.builder()
+                .userRole(findMember.getRole())
+                .accessToken(accessToken)
+                .userName(findMember.getName())
+                .build();
+        return resLoginDTO;
+    }
+
+    private Member getMemberByEmail(String email) {
+        return memberRepository.findByEmail(email)
+                .orElseThrow(() -> new RestApiException(MemberErrorCode.FAILED_LOGIN));
+    }
+
+    private void validatePassword(String rawPassword, String encodedPassword) {
+        if (!bCryptPasswordEncoder.matches(rawPassword, encodedPassword)) {
+            throw new RestApiException(MemberErrorCode.FAILED_LOGIN);
+        }
     }
 
     private void validateDuplicateMember(String email) {

@@ -10,6 +10,7 @@ public enum MemberErrorCode implements ErrorCode {
     FAILED_SEND_AUTHENTICATION_EMAIL(10001, "인증 메일 발송을 실패했습니다. 다시 시도해주세요."),
     FAILED_VERIFY_EMAIL(10002, "잘못된 인증 코드입니다. 다시 시도해주세요."),
     DUPLICATE_MEMBER(10003, "이미 회원가입이 되어있는 계정입니다."),
+    FAILED_LOGIN(10004, "로그인에 실패했습니다. 이메일 또는 비밀번호를 다시 확인해주세요."),
     ;
 
     private final int code;
