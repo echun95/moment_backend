@@ -2,6 +2,7 @@ package com.moment.member.controller;
 
 import com.moment.common.dto.ResultDTO;
 import com.moment.member.dto.JoinMemberDTO;
+import com.moment.member.dto.LoginDTO;
 import com.moment.member.dto.ReqEmailDTO;
 import com.moment.member.service.MemberService;
 import jakarta.validation.Valid;
@@ -38,6 +39,11 @@ public class MemberController {
     public ResponseEntity<ResultDTO> join(@Valid @RequestBody JoinMemberDTO joinMemberDTO) {
         memberService.join(joinMemberDTO);
         return new ResponseEntity<>(ResultDTO.of(10000, "회원가입을 완료했습니다.", null), HttpStatus.OK);
+    }
+    @PostMapping("/members/login")
+    public ResponseEntity<ResultDTO> login(@Valid @RequestBody LoginDTO.ReqLoginDTO loginDTO) {
+        LoginDTO.ResLoginDTO resLoginDTO = memberService.login(loginDTO);
+        return new ResponseEntity<>(ResultDTO.of(10000, "로그인을 성공했습니다.", resLoginDTO), HttpStatus.OK);
     }
 
 }
