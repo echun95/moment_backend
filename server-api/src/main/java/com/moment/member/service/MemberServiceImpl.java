@@ -77,18 +77,15 @@ public class MemberServiceImpl implements MemberService {
         //임시 비번 사용 유무 체크
         //redis에 해당 아이디의 키값으로 임시 비번이 있는지 확인 후 조회
         //조회 한 값과 입력받은 값이 같은지 확인 후 같으면 로그인 완료처리 및 active true 반환
-        boolean tempPasswordActive = false;
-        String temporaryPassword = getTemporaryPassword(loginDTO.getEmail());
-        if(!temporaryPassword.isBlank()){
-            validatePassword(loginDTO.getPassword(), temporaryPassword);
-            tempPasswordActive = true;
-        }else{
+        boolean tempPasswordActive = checkTemporaryPassword(loginDTO);
+        if (!tempPasswordActive) {
             validatePassword(loginDTO.getPassword(), findMember.getPassword());
         }
         //jwt 발급 및 refresh token 저장
         String accessToken = jwtProvider.generateAccessTokenFromUserId(findMember.getMemberId());
         String refreshToken = jwtProvider.generateRefreshTokenFromUserId(findMember.getMemberId());
         findMember.updateRefreshToken(refreshToken);
+
         LoginDTO.ResLoginDTO resLoginDTO = LoginDTO.ResLoginDTO.builder()
                 .userRole(findMember.getRole())
                 .accessToken(accessToken)
@@ -109,6 +106,17 @@ public class MemberServiceImpl implements MemberService {
             log.error("failed sendTemporaryPassword : ", e);
             throw new RestApiException(MemberErrorCode.FAILED_SEND_TEMPORARY_PASSWORD_EMAIL);
         }
+    }
+    private boolean checkTemporaryPassword(LoginDTO.ReqLoginDTO loginDTO) {
+        String temporaryPassword = getTemporaryPassword(loginDTO.getEmail());
+        if (temporaryPassword != null && !temporaryPassword.isBlank()) {
+            if (temporaryPassword.equals(loginDTO.getPassword())) {
+                return true;
+            } else {
+                throw new RestApiException(MemberErrorCode.FAILED_AUTHENTICATION_TEMPORARY_PASSWORD);
+            }
+        }
+        return false;
     }
 
     private void saveTemporaryPassword(String email, String temporaryPassword) {
