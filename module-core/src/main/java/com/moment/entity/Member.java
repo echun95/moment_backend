@@ -42,6 +42,11 @@ public class Member extends BaseEntity {
     @Column(name = "BIRTH")
     private LocalDate birth;
 
+    @Column(name = "USER_CODE")
+    private String userCode;
+
+    @Column(name = "CONNECTION_USER_CODE")
+    private String connectionUserCode;
     @Enumerated(EnumType.STRING)
     @Column(name = "ROLE")
     private Role role;
@@ -54,7 +59,7 @@ public class Member extends BaseEntity {
     private String refreshToken;
 
     @Builder
-    public Member(Long memberId, String name, String password, String email, String phoneNumber, Gender gender, Gender profileImageUrl, LocalDate birth, Role role, String provider, String providerId, String refreshToken) {
+    public Member(Long memberId, String name, String password, String email, String phoneNumber, Gender gender, Gender profileImageUrl, LocalDate birth, String userCode, String connectionUserCode, Role role, String provider, String providerId, String refreshToken) {
         this.memberId = memberId;
         this.name = name;
         this.password = password;
@@ -63,11 +68,15 @@ public class Member extends BaseEntity {
         this.gender = gender;
         this.profileImageUrl = profileImageUrl;
         this.birth = birth;
+        this.userCode = userCode;
+        this.connectionUserCode = connectionUserCode;
         this.role = role;
         this.provider = provider;
         this.providerId = providerId;
         this.refreshToken = refreshToken;
     }
+
+
 
 
 

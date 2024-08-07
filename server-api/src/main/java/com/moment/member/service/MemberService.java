@@ -13,4 +13,6 @@ public interface MemberService {
     void join(JoinMemberDTO joinMemberDTO);
 
     LoginDTO.ResLoginDTO login(LoginDTO.ReqLoginDTO loginDTO);
+
+    void resetPassword(String email);
 }

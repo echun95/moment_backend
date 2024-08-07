@@ -12,15 +12,16 @@ import com.moment.member.dto.LoginDTO;
 import com.moment.member.dto.ReqEmailDTO;
 import com.moment.member.repository.MemberRepository;
 import com.moment.redis.service.RedisService;
+import com.moment.util.RandomUtils;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
 @Service
@@ -30,18 +31,19 @@ public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
     private final RedisService redisService;
     private final EmailService emailService;
-    @Value("${spring.mail.username}")
-    private String momentAdminEmail;
+
     private final PasswordEncoder bCryptPasswordEncoder;
     private final JwtProvider jwtProvider;
+    private final RandomUtils randomUtils;
+    private static final String TEMP_PASSWORD_PREFIX = "temp_password_";
 
     @Override
     public void sendAuthenticationEmail(ReqEmailDTO reqEmailDTO) {
         String targetEmail = reqEmailDTO.getEmail();
-        int authenticationNum = createRandomNumber();
+        int authenticationNum = randomUtils.createRandomNumber();
         //email 발송
         try {
-            emailService.sendEmailCertification(targetEmail, momentAdminEmail, authenticationNum);
+            emailService.sendEmailCertification(targetEmail, authenticationNum);
         } catch (MessagingException e) {
             log.error("failed sendAuthenticationEmail : ", e);
             throw new RestApiException(MemberErrorCode.FAILED_SEND_AUTHENTICATION_EMAIL);
@@ -72,7 +74,17 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public LoginDTO.ResLoginDTO login(LoginDTO.ReqLoginDTO loginDTO) {
         Member findMember = getMemberByEmail(loginDTO.getEmail());
-        validatePassword(loginDTO.getPassword(), findMember.getPassword());
+        //임시 비번 사용 유무 체크
+        //redis에 해당 아이디의 키값으로 임시 비번이 있는지 확인 후 조회
+        //조회 한 값과 입력받은 값이 같은지 확인 후 같으면 로그인 완료처리 및 active true 반환
+        boolean tempPasswordActive = false;
+        String temporaryPassword = getTemporaryPassword(loginDTO.getEmail());
+        if(!temporaryPassword.isBlank()){
+            validatePassword(loginDTO.getPassword(), temporaryPassword);
+            tempPasswordActive = true;
+        }else{
+            validatePassword(loginDTO.getPassword(), findMember.getPassword());
+        }
         //jwt 발급 및 refresh token 저장
         String accessToken = jwtProvider.generateAccessTokenFromUserId(findMember.getMemberId());
         String refreshToken = jwtProvider.generateRefreshTokenFromUserId(findMember.getMemberId());
@@ -81,8 +93,29 @@ public class MemberServiceImpl implements MemberService {
                 .userRole(findMember.getRole())
                 .accessToken(accessToken)
                 .userName(findMember.getName())
+                .tempPasswordActive(tempPasswordActive)
                 .build();
         return resLoginDTO;
+    }
+
+    @Override
+    public void resetPassword(String email) {
+        Member findMember = memberRepository.findByEmail(email).orElseThrow(() -> new RestApiException(MemberErrorCode.NOT_FOUND_MEMBER));
+        String temporaryPassword = randomUtils.generateTemporaryPassword();
+        saveTemporaryPassword(email, temporaryPassword);
+        try {
+            emailService.sendTemporaryPassword(email, temporaryPassword);
+        } catch (MessagingException e) {
+            log.error("failed sendTemporaryPassword : ", e);
+            throw new RestApiException(MemberErrorCode.FAILED_SEND_TEMPORARY_PASSWORD_EMAIL);
+        }
+    }
+
+    private void saveTemporaryPassword(String email, String temporaryPassword) {
+        redisService.setValues(TEMP_PASSWORD_PREFIX + email, temporaryPassword, 10, TimeUnit.MINUTES);
+    }
+    private String getTemporaryPassword(String email) {
+        return redisService.getValue(TEMP_PASSWORD_PREFIX + email);
     }
 
     private Member getMemberByEmail(String email) {
@@ -108,13 +141,9 @@ public class MemberServiceImpl implements MemberService {
                 .name(joinMemberDTO.getName())
                 .gender(joinMemberDTO.getGender())
                 .birth(joinMemberDTO.getBirth())
+                .userCode(randomUtils.createUserCode())
                 .role(Role.ROLE_USER)
                 .password(bCryptPasswordEncoder.encode(joinMemberDTO.getPassword()))
                 .build();
-    }
-
-    // 랜덤으로 숫자 생성
-    public static int createRandomNumber() {
-        return (int) (Math.random() * (90000)) + 100000; //(int) Math.random() * (최댓값-최소값+1) + 최소값
     }
 }

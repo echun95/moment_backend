@@ -38,14 +38,14 @@ public class AuthEntryPointHandler implements AuthenticationEntryPoint {
         } else if (authException.getCause() instanceof InsufficientAuthenticationException) {
             // 기타 인증 예외 처리
             errorResponse = ErrorResponse.builder()
-                    .code(HttpServletResponse.SC_UNAUTHORIZED)
+                    .code(HttpServletResponse.SC_FORBIDDEN)
                     .message("접근 권한이 없는 페이지입니다.")
                     .build();
         } else {
             // 기타 인증 예외 처리
             errorResponse = ErrorResponse.builder()
                     .code(HttpServletResponse.SC_UNAUTHORIZED)
-                    .message("인증에 실패했습니다. 다시 로그인 해주세요.")
+                    .message("로그인 정보가 만료됐습니다. 다시 로그인 해주세요.")
                     .build();
         }
 

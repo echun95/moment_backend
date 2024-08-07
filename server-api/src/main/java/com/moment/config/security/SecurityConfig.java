@@ -54,6 +54,7 @@ public class SecurityConfig {
                 .requestMatchers("/oauth2/authorization/**").permitAll()
                 .requestMatchers("/api/v1/test/**").permitAll()
                 .requestMatchers("/api/v1/members/login").permitAll()
+                .requestMatchers("/api/v1/members/reset-password").permitAll()
                 .requestMatchers("/api/v1/members/join").permitAll()
                 .requestMatchers("/api/v1/members/send-authentication-email").permitAll()
                 .requestMatchers("/api/v1/members/verify-email").permitAll()
