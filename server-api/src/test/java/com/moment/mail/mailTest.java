@@ -17,7 +17,7 @@ public class mailTest {
 
 //    @Test
     void sendMailTest() throws MessagingException {
-        emailService.sendEmailCertification(senderEmail, senderEmail, createNumber());
+        emailService.sendEmailCertification(senderEmail, createNumber());
     }
     // 랜덤으로 숫자 생성
     public static int createNumber() {

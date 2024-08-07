@@ -23,5 +23,6 @@ public class LoginDTO {
         private String accessToken;
         private Role userRole;
         private String userName;
+        private boolean tempPasswordActive;
     }
 }

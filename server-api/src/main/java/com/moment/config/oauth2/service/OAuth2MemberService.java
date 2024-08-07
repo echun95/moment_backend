@@ -7,6 +7,7 @@ import com.moment.config.oauth2.dto.PrincipalDetails;
 import com.moment.entity.Member;
 import com.moment.enums.Role;
 import com.moment.member.repository.MemberRepository;
+import com.moment.util.RandomUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -23,6 +24,7 @@ import java.util.UUID;
 public class OAuth2MemberService extends DefaultOAuth2UserService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder bCryptPasswordEncoder;
+    private final RandomUtils randomUtils;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -49,8 +51,8 @@ public class OAuth2MemberService extends DefaultOAuth2UserService {
                     .provider(provider)
                     .providerId(providerId)
                     .email(email)
+                    .userCode(randomUtils.createUserCode())
                     .role(role)
-                    .role(Role.ROLE_USER)
                     .build();
             memberRepository.save(member);
         } else {

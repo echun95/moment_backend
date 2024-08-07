@@ -3,6 +3,7 @@ package com.moment.redis.service;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public interface RedisService {
@@ -10,6 +11,7 @@ public interface RedisService {
     void setValues(String key, String value);                       // 값 등록 / 수정
 
     void setValues(String key, String value, Duration duration);    // 값 등록 / 수정
+    void setValues(String key, String value, long timeout, TimeUnit unit);    // 값 등록 / 수정
 
     String getValue(String key);                                    // 값 조회
 

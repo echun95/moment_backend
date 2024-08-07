@@ -43,7 +43,11 @@ public class MemberController {
     @PostMapping("/members/login")
     public ResponseEntity<ResultDTO> login(@Valid @RequestBody LoginDTO.ReqLoginDTO loginDTO) {
         LoginDTO.ResLoginDTO resLoginDTO = memberService.login(loginDTO);
-        return new ResponseEntity<>(ResultDTO.of(10000, "로그인을 성공했습니다.", resLoginDTO), HttpStatus.OK);
+        return new ResponseEntity<>(ResultDTO.of(10000, "로그인을 완료했습니다.", resLoginDTO), HttpStatus.OK);
     }
-
+    @PostMapping("/members/reset-password")
+    public ResponseEntity<ResultDTO<Object>> resetPassword(@RequestParam String email) {
+        memberService.resetPassword(email);
+        return new ResponseEntity<>(ResultDTO.of(10000, "임시 비밀번호 발급을 완료했습니다.", null), HttpStatus.OK);
+    }
 }
