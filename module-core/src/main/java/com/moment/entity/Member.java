@@ -37,7 +37,7 @@ public class Member extends BaseEntity {
     private Gender gender;
 
     @Column(name = "PROFILE_IMAGE_URL")
-    private Gender profileImageUrl;
+    private String profileImageUrl;
 
     @Column(name = "BIRTH")
     private LocalDate birth;
@@ -59,7 +59,7 @@ public class Member extends BaseEntity {
     private String refreshToken;
 
     @Builder
-    public Member(Long memberId, String name, String password, String email, String phoneNumber, Gender gender, Gender profileImageUrl, LocalDate birth, String userCode, String connectionUserCode, Role role, String provider, String providerId, String refreshToken) {
+    public Member(Long memberId, String name, String password, String email, String phoneNumber, Gender gender, String profileImageUrl, LocalDate birth, String userCode, String connectionUserCode, Role role, String provider, String providerId, String refreshToken) {
         this.memberId = memberId;
         this.name = name;
         this.password = password;

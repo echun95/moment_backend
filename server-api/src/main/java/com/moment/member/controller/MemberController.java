@@ -4,6 +4,7 @@ import com.moment.common.dto.ResultDTO;
 import com.moment.member.dto.JoinMemberDTO;
 import com.moment.member.dto.LoginDTO;
 import com.moment.member.dto.ReqEmailDTO;
+import com.moment.member.dto.ReqMemberInfo;
 import com.moment.member.service.MemberService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -49,5 +50,10 @@ public class MemberController {
     public ResponseEntity<ResultDTO<Object>> resetPassword(@RequestParam String email) {
         memberService.resetPassword(email);
         return new ResponseEntity<>(ResultDTO.of(10000, "임시 비밀번호 발급을 완료했습니다.", null), HttpStatus.OK);
+    }
+    @GetMapping("/members/{memberId}")
+    public ResponseEntity<ResultDTO> getMemberInfo(@PathVariable(name = "memberId") Long memberId){
+        ReqMemberInfo memberInfo = memberService.getMemberInfo(memberId);
+        return new ResponseEntity<>(ResultDTO.of(10000, "회원정보 조회를 완료했습니다.", memberInfo), HttpStatus.OK);
     }
 }

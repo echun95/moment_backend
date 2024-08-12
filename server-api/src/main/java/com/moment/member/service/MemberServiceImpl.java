@@ -7,9 +7,7 @@ import com.moment.config.jwt.provider.JwtProvider;
 import com.moment.entity.Member;
 import com.moment.enums.Role;
 import com.moment.mail.service.EmailService;
-import com.moment.member.dto.JoinMemberDTO;
-import com.moment.member.dto.LoginDTO;
-import com.moment.member.dto.ReqEmailDTO;
+import com.moment.member.dto.*;
 import com.moment.member.repository.MemberRepository;
 import com.moment.redis.service.RedisService;
 import com.moment.util.RandomUtils;
@@ -107,6 +105,13 @@ public class MemberServiceImpl implements MemberService {
             throw new RestApiException(MemberErrorCode.FAILED_SEND_TEMPORARY_PASSWORD_EMAIL);
         }
     }
+
+    @Override
+    public ReqMemberInfo getMemberInfo(Long memberId) {
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new RestApiException(MemberErrorCode.NOT_FOUND_MEMBER));
+        return MemberMapper.toDto(member);
+    }
+
     private boolean checkTemporaryPassword(LoginDTO.ReqLoginDTO loginDTO) {
         String temporaryPassword = getTemporaryPassword(loginDTO.getEmail());
         if (temporaryPassword != null && !temporaryPassword.isBlank()) {

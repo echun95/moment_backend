@@ -4,6 +4,7 @@ import com.moment.common.dto.ResultDTO;
 import com.moment.member.dto.JoinMemberDTO;
 import com.moment.member.dto.LoginDTO;
 import com.moment.member.dto.ReqEmailDTO;
+import com.moment.member.dto.ReqMemberInfo;
 
 public interface MemberService {
     void sendAuthenticationEmail(ReqEmailDTO reqEmailDTO);
@@ -15,4 +16,6 @@ public interface MemberService {
     LoginDTO.ResLoginDTO login(LoginDTO.ReqLoginDTO loginDTO);
 
     void resetPassword(String email);
+
+    ReqMemberInfo getMemberInfo(Long memberId);
 }
