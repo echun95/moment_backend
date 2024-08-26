@@ -76,7 +76,10 @@ public class MemberServiceImpl implements MemberService {
         //redis에 해당 아이디의 키값으로 임시 비번이 있는지 확인 후 조회
         //조회 한 값과 입력받은 값이 같은지 확인 후 같으면 로그인 완료처리 및 active true 반환
         boolean tempPasswordActive = checkTemporaryPassword(loginDTO);
-        if (!tempPasswordActive) {
+        if (tempPasswordActive) {
+            findMember.changePassword(bCryptPasswordEncoder.encode(loginDTO.getPassword()));
+            deleteTemporaryPassword(loginDTO.getEmail());
+        }else{
             validatePassword(loginDTO.getPassword(), findMember.getPassword());
         }
         //jwt 발급 및 refresh token 저장
@@ -95,7 +98,7 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public void resetPassword(String email) {
-        Member findMember = memberRepository.findByEmail(email).orElseThrow(() -> new RestApiException(MemberErrorCode.NOT_FOUND_MEMBER));
+        findMemberByEmail(email);
         String temporaryPassword = randomUtils.generateTemporaryPassword();
         saveTemporaryPassword(email, temporaryPassword);
         try {
@@ -108,8 +111,28 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public ReqMemberInfo getMemberInfo(Long memberId) {
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new RestApiException(MemberErrorCode.NOT_FOUND_MEMBER));
+        Member member = findMemberById(memberId);
         return MemberMapper.toDto(member);
+    }
+
+    @Override
+    @Transactional
+    public void modifyPassword(Long memberId, String password) {
+        Member member = findMemberById(memberId);
+        member.changePassword(bCryptPasswordEncoder.encode(password));
+    }
+
+    @Override
+    public void validatePassword(Long memberId, String password) {
+        Member findMember = findMemberById(memberId);
+        validatePassword(password, findMember.getPassword());
+    }
+
+    private Member findMemberByEmail(String email) {
+        return memberRepository.findByEmail(email).orElseThrow(() -> new RestApiException(MemberErrorCode.NOT_FOUND_MEMBER));
+    }
+    private Member findMemberById(Long memberId) {
+        return memberRepository.findById(memberId).orElseThrow(() -> new RestApiException(MemberErrorCode.NOT_FOUND_MEMBER));
     }
 
     private boolean checkTemporaryPassword(LoginDTO.ReqLoginDTO loginDTO) {
@@ -122,6 +145,9 @@ public class MemberServiceImpl implements MemberService {
             }
         }
         return false;
+    }
+    private void deleteTemporaryPassword(String email){
+        redisService.deleteValue(TEMP_PASSWORD_PREFIX + email);
     }
 
     private void saveTemporaryPassword(String email, String temporaryPassword) {
@@ -138,7 +164,7 @@ public class MemberServiceImpl implements MemberService {
 
     private void validatePassword(String rawPassword, String encodedPassword) {
         if (!bCryptPasswordEncoder.matches(rawPassword, encodedPassword)) {
-            throw new RestApiException(MemberErrorCode.FAILED_LOGIN);
+            throw new RestApiException(MemberErrorCode.FAILED_VALIDATE_PASSWORD);
         }
     }
 

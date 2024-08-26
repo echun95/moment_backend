@@ -18,4 +18,8 @@ public interface MemberService {
     void resetPassword(String email);
 
     ReqMemberInfo getMemberInfo(Long memberId);
+
+    void modifyPassword(Long memberId, String password);
+
+    void validatePassword(Long memberId, String password);
 }

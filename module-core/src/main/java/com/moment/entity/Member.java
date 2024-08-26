@@ -76,12 +76,10 @@ public class Member extends BaseEntity {
         this.refreshToken = refreshToken;
     }
 
-
-
-
-
-
     public void updateRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;
+    }
+    public void changePassword(String password) {
+        this.password = password;
     }
 }

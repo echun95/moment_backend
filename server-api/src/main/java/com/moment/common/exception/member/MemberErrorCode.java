@@ -14,6 +14,7 @@ public enum MemberErrorCode implements ErrorCode {
     NOT_FOUND_MEMBER(10005, "회원가입이 되어있지않은 계정입니다."),
     FAILED_SEND_TEMPORARY_PASSWORD_EMAIL(10006, "인증 메일 발송을 실패했습니다. 다시 시도해주세요."),
     FAILED_AUTHENTICATION_TEMPORARY_PASSWORD(10007, "임시 비밀번호를 다시 확인해주세요."),
+    FAILED_VALIDATE_PASSWORD(10008, "잘못된 비밀번호입니다. 비밀번호를 다시 확인해주세요."),
     ;
     private final int code;
     private final String message;
