@@ -87,8 +87,8 @@ public class MemberServiceImpl implements MemberService {
             validatePassword(loginDTO.getPassword(), findMember.getPassword());
         }
         //jwt 발급 및 refresh token 저장
-        String accessToken = jwtProvider.generateAccessTokenFromUserId(findMember.getMemberId());
-        String refreshToken = jwtProvider.generateRefreshTokenFromUserId(findMember.getMemberId());
+        String accessToken = jwtProvider.generateAccessTokenFromUserId(findMember.getEmail());
+        String refreshToken = jwtProvider.generateRefreshTokenFromUserId(findMember.getEmail());
         findMember.updateRefreshToken(refreshToken);
 
         LoginDTO.ResLoginDTO resLoginDTO = LoginDTO.ResLoginDTO.builder()

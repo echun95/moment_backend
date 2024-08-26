@@ -71,8 +71,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 		// 회원 DB에 사용자 저장되어 있으면, 액세스 토큰 쿠키 발급 및 리프레쉬 토큰 업데이트
 		Optional<Member> member = memberRepository.findById(userId);
 		if(member.isPresent()){
-			member.get().updateRefreshToken(jwtProvider.generateRefreshTokenFromUserId(userId));
-			return jwtProvider.generateAccessTokenFromUserId(userId);
+			member.get().updateRefreshToken(jwtProvider.generateRefreshTokenFromUserId(member.get().getEmail()));
+			return jwtProvider.generateAccessTokenFromUserId(member.get().getEmail());
 		}
 		return null;
 	}

@@ -36,19 +36,19 @@ public class JwtProvider {
 
 
     // 액세스 토큰 발급
-    public String generateAccessTokenFromUserId(Long userId) {
-        return generateToken(userId, accessTokenExpirationMs);
+    public String generateAccessTokenFromUserId(String userEmail) {
+        return generateToken(userEmail, accessTokenExpirationMs);
     }
 
     // 리프레쉬 토큰 발급
-    public String generateRefreshTokenFromUserId(Long userId) {
-        return generateToken(userId, refreshTokenExpirationMs);
+    public String generateRefreshTokenFromUserId(String userEmail) {
+        return generateToken(userEmail, refreshTokenExpirationMs);
     }
 
-    public String generateToken(Long userId, String tokenExpirationMs) {
+    public String generateToken(String userEmail, String tokenExpirationMs) {
         // Claims 란 JWT의 payload 부분에 들어가는 데이터 단위라고 보면 된다.
         // Map<String, Object>를 상속하고 있기 때문에 key, value 형식으로 값을 넣을 수 있다.
-        Claims claims = Jwts.claims().setSubject(String.valueOf(userId)); // username
+        Claims claims = Jwts.claims().setSubject(userEmail); // username
 
         // 토큰 생성 시간
         Date now = new Date();
