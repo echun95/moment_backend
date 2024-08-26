@@ -3,6 +3,7 @@ package com.moment.member.service;
 import com.moment.common.dto.ResultDTO;
 import com.moment.common.exception.RestApiException;
 import com.moment.common.exception.member.MemberErrorCode;
+import com.moment.common.service.AwsFileService;
 import com.moment.config.jwt.provider.JwtProvider;
 import com.moment.entity.Member;
 import com.moment.enums.Role;
@@ -17,7 +18,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
@@ -33,6 +36,7 @@ public class MemberServiceImpl implements MemberService {
     private final PasswordEncoder bCryptPasswordEncoder;
     private final JwtProvider jwtProvider;
     private final RandomUtils randomUtils;
+    private final AwsFileService awsFileService;
     private static final String TEMP_PASSWORD_PREFIX = "temp_password_";
 
     @Override
@@ -128,6 +132,26 @@ public class MemberServiceImpl implements MemberService {
         validatePassword(password, findMember.getPassword());
     }
 
+    @Override
+    @Transactional
+    public void saveProfile(Long memberId, MultipartFile file) {
+        Member findMember = findMemberById(memberId);
+        try {
+            String profileImageUrl = findMember.getProfileImageUrl();
+            if(profileImageUrl != null && !profileImageUrl.isBlank()){
+                String fileName = extractFileName(profileImageUrl);
+                awsFileService.removeFile(fileName);
+            }
+            String saveProfilePath = awsFileService.saveProfileImg(file, memberId);
+            findMember.changeProfile(saveProfilePath);
+        } catch (IOException e) {
+            throw new RestApiException(MemberErrorCode.FAILED_UPLOAD_PROFILE);
+        }
+    }
+    public static String extractFileName(String url) {
+        // 마지막 슬래시 이후의 문자열 추출
+        return url.substring(url.indexOf(".com/") + 5);
+    }
     private Member findMemberByEmail(String email) {
         return memberRepository.findByEmail(email).orElseThrow(() -> new RestApiException(MemberErrorCode.NOT_FOUND_MEMBER));
     }

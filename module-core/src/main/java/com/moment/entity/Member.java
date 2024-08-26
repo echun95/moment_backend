@@ -82,4 +82,7 @@ public class Member extends BaseEntity {
     public void changePassword(String password) {
         this.password = password;
     }
+    public void changeProfile(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
+    }
 }
