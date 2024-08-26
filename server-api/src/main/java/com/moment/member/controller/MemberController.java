@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 
 @RequestMapping("/api/v1")
@@ -68,4 +69,11 @@ public class MemberController {
         memberService.validatePassword(memberId, password);
         return new ResponseEntity<>(ResultDTO.of(10000, "비밀번호 검증을 통과했습니다.", null), HttpStatus.OK);
     }
+    @PostMapping("/members/{memberId}/profile")
+    public ResponseEntity<ResultDTO> saveProfile(@PathVariable(name = "memberId") Long memberId,
+                                                 @RequestParam(name = "profile") MultipartFile file){
+        memberService.saveProfile(memberId, file);
+        return new ResponseEntity<>(ResultDTO.of(10000, "프로필 저장을 완료했습니다.", null), HttpStatus.OK);
+    }
+
 }

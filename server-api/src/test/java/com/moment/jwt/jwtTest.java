@@ -23,7 +23,7 @@
 //@ExtendWith(MockitoExtension.class)
 //public class jwtTest {
 //    private String secretKey = "bW9tZW50and0c2VjcmV0IUA=bW9tZW50and0c2VjcmV0IUA=bW9tZW50and0c2VjcmV0IUA=bW9tZW50and0c2VjcmV0IUA=";
-//    private String accessTokenExpirationMs = "300000";
+//    private String accessTokenExpirationMs = "300000000";
 //    private String refreshTokenExpirationMs = "600000";
 //    @InjectMocks
 //    JwtProvider jwtProvider;
