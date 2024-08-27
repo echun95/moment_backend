@@ -1,6 +1,5 @@
 package com.moment.member.service;
 
-import com.moment.common.dto.ResultDTO;
 import com.moment.common.exception.RestApiException;
 import com.moment.common.exception.member.MemberErrorCode;
 import com.moment.common.service.AwsFileService;
@@ -22,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
@@ -41,6 +41,10 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public void sendAuthenticationEmail(ReqEmailDTO reqEmailDTO) {
+        Optional<Member> findMember = memberRepository.findByEmail(reqEmailDTO.getEmail());
+        if(findMember.isPresent()){
+            throw new RestApiException(MemberErrorCode.ALREADY_BEEN_JOIN);
+        }
         String targetEmail = reqEmailDTO.getEmail();
         int authenticationNum = randomUtils.createRandomNumber();
         //email 발송
@@ -55,13 +59,12 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public ResultDTO<Object> verifyEmail(String email, String code) {
+    public void verifyEmail(String email, String code) {
         String authenticationNum = redisService.getValue(email);
         //인증 완료
         if (!authenticationNum.equals(code)) {
             throw new RestApiException(MemberErrorCode.FAILED_VERIFY_EMAIL);
         }
-        return ResultDTO.of(10000, "이메일 인증을 완료했습니다.", null);
     }
 
     @Override
@@ -114,7 +117,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public ReqMemberInfo getMemberInfo(Long memberId) {
+    public ResMemberInfo getMemberInfo(Long memberId) {
         Member member = findMemberById(memberId);
         return MemberMapper.toDto(member);
     }
