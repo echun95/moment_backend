@@ -1,11 +1,13 @@
 package com.moment.member.controller;
 
+import com.moment.common.dto.LoginMemberInfo;
 import com.moment.common.dto.ResultDTO;
-import com.moment.member.dto.JoinMemberDTO;
-import com.moment.member.dto.LoginDTO;
-import com.moment.member.dto.ReqEmailDTO;
-import com.moment.member.dto.ReqMemberInfo;
+import com.moment.member.dto.*;
 import com.moment.member.service.MemberService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -24,55 +26,115 @@ import org.springframework.web.multipart.MultipartFile;
 public class MemberController {
     private final MemberService memberService;
 
-    @PostMapping("/members/send-authentication-email")
+    @PostMapping("/auth/send-authentication-email")
+    @Operation(summary = "인증 메일 발송 api")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "10000", description = "Successful",
+                    content = {@io.swagger.v3.oas.annotations.media.Content(mediaType = "application/json", schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = ResultDTO.class))}),
+            @ApiResponse(responseCode = "10001", description = "인증 메일 발송을 실패했습니다. 다시 시도해주세요."),
+            @ApiResponse(responseCode = "10010", description = "이미 회원가입이 되어있는 계정입니다.")
+    })
     public ResponseEntity<ResultDTO> sendAuthenticationEmail(@Valid @RequestBody ReqEmailDTO reqEmailDTO) {
         memberService.sendAuthenticationEmail(reqEmailDTO);
         return new ResponseEntity<>(ResultDTO.of(10000, "이메일 인증 메일을 발송됐습니다.", null), HttpStatus.OK);
     }
 
-    @GetMapping("/members/verify-email")
+    @GetMapping("/auth/verify-email")
+    @Operation(summary = "이메일 인증 api")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "10000", description = "Successful",
+                    content = {@io.swagger.v3.oas.annotations.media.Content(mediaType = "application/json")}),
+            @ApiResponse(responseCode = "10002", description = "잘못된 인증 코드입니다. 인증 코드를 확인해주세요.")
+    })
     public ResponseEntity<ResultDTO> verifyEmail(@NotBlank @Email @RequestParam(name = "email") String email,
                                                  @NotBlank @RequestParam(name = "code") String code) {
-        ResultDTO<Object> response = memberService.verifyEmail(email, code);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        memberService.verifyEmail(email, code);
+        return new ResponseEntity<>(ResultDTO.of(10000, "이메일 인증을 완료했습니다.", null), HttpStatus.OK);
     }
 
-    @PostMapping("/members/join")
+    @PostMapping("/auth/join")
+    @Operation(summary = "회원가입 api")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "10000", description = "Successful",
+                    content = {@io.swagger.v3.oas.annotations.media.Content(mediaType = "application/json")}),
+            @ApiResponse(responseCode = "10003", description = "이미 회원가입이 되어있는 계정입니다.")
+    })
     public ResponseEntity<ResultDTO> join(@Valid @RequestBody JoinMemberDTO joinMemberDTO) {
         memberService.join(joinMemberDTO);
         return new ResponseEntity<>(ResultDTO.of(10000, "회원가입을 완료했습니다.", null), HttpStatus.OK);
     }
-    @PostMapping("/members/login")
+    @PostMapping("/auth/login")
+    @Operation(summary = "로그인 api")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "10000", description = "Successful",
+                    content = {@io.swagger.v3.oas.annotations.media.Content(mediaType = "application/json", schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = LoginDTO.ResLoginDTO.class))}),
+            @ApiResponse(responseCode = "10004", description = "로그인에 실패했습니다. 이메일 또는 비밀번호를 다시 확인해주세요."),
+            @ApiResponse(responseCode = "10007", description = "임시 비밀번호를 다시 확인해주세요."),
+            @ApiResponse(responseCode = "10008", description = "잘못된 비밀번호입니다. 비밀번호를 다시 확인해주세요."),
+    })
     public ResponseEntity<ResultDTO> login(@Valid @RequestBody LoginDTO.ReqLoginDTO loginDTO) {
         LoginDTO.ResLoginDTO resLoginDTO = memberService.login(loginDTO);
         return new ResponseEntity<>(ResultDTO.of(10000, "로그인을 완료했습니다.", resLoginDTO), HttpStatus.OK);
     }
-    @PostMapping("/members/reset-password")
-    public ResponseEntity<ResultDTO<Object>> resetPassword(@RequestParam String email) {
+    @PostMapping("/auth/reset-password")
+    @Operation(summary = "임시 비밀번호 발급 api")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "10000", description = "Successful",
+                    content = {@io.swagger.v3.oas.annotations.media.Content(mediaType = "application/json")}),
+            @ApiResponse(responseCode = "10005", description = "회원가입이 되어있지않은 계정입니다."),
+            @ApiResponse(responseCode = "10006", description = "인증 메일 발송을 실패했습니다. 다시 시도해주세요."),
+    })
+    public ResponseEntity<ResultDTO> resetPassword(@RequestParam(name = "email") String email) {
         memberService.resetPassword(email);
         return new ResponseEntity<>(ResultDTO.of(10000, "임시 비밀번호 발급을 완료했습니다.", null), HttpStatus.OK);
     }
-    @GetMapping("/members/{memberId}")
-    public ResponseEntity<ResultDTO> getMemberInfo(@PathVariable(name = "memberId") Long memberId){
-        ReqMemberInfo memberInfo = memberService.getMemberInfo(memberId);
+    @GetMapping("/memberInfo")
+    @Operation(summary = "내정보 조회 api")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "10000", description = "Successful",
+                    content = {@io.swagger.v3.oas.annotations.media.Content(mediaType = "application/json", schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = ResMemberInfo.class))}),
+            @ApiResponse(responseCode = "10005", description = "회원가입이 되어있지않은 계정입니다."),
+    })
+    public ResponseEntity<ResultDTO> getMemberInfo(@Parameter(hidden = true) LoginMemberInfo loginMemberInfo){
+        ResMemberInfo memberInfo = memberService.getMemberInfo(loginMemberInfo.getMemberId());
         return new ResponseEntity<>(ResultDTO.of(10000, "회원정보 조회를 완료했습니다.", memberInfo), HttpStatus.OK);
     }
-    @PatchMapping("/members/{memberId}/password")
-    public ResponseEntity<ResultDTO> modifyPassword(@PathVariable(name = "memberId") Long memberId,
-                                                    @RequestBody String password){
-        memberService.modifyPassword(memberId, password);
+    @PatchMapping("/auth/password")
+    @Operation(summary = "비밀번호 변경 api")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "10000", description = "Successful",
+                    content = {@io.swagger.v3.oas.annotations.media.Content(mediaType = "application/json")}),
+            @ApiResponse(responseCode = "10005", description = "회원가입이 되어있지않은 계정입니다."),
+    })
+    public ResponseEntity<ResultDTO> modifyPassword(@Parameter(hidden = true) LoginMemberInfo loginMemberInfo,
+                                                    @RequestBody ReqPasswordDTO passwordDTO){
+        memberService.modifyPassword(loginMemberInfo.getMemberId(), passwordDTO.getPassword());
         return new ResponseEntity<>(ResultDTO.of(10000, "비밀번호를 수정했습니다.", null), HttpStatus.OK);
     }
-    @PostMapping("/members/{memberId}/validate-password")
-    public ResponseEntity<ResultDTO> validatePassword(@PathVariable(name = "memberId") Long memberId,
-                                                      @RequestBody String password){
-        memberService.validatePassword(memberId, password);
+    @PostMapping("/auth/validate-password")
+    @Operation(summary = "비밀번호 검증 api")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "10000", description = "Successful",
+                    content = {@io.swagger.v3.oas.annotations.media.Content(mediaType = "application/json")}),
+            @ApiResponse(responseCode = "10005", description = "회원가입이 되어있지않은 계정입니다."),
+            @ApiResponse(responseCode = "10008", description = "잘못된 비밀번호입니다. 비밀번호를 다시 확인해주세요."),
+    })
+    public ResponseEntity<ResultDTO> validatePassword(@Parameter(hidden = true) LoginMemberInfo loginMemberInfo,
+                                                      @RequestBody ReqPasswordDTO passwordDTO){
+        memberService.validatePassword(loginMemberInfo.getMemberId(), passwordDTO.getPassword());
         return new ResponseEntity<>(ResultDTO.of(10000, "비밀번호 검증을 통과했습니다.", null), HttpStatus.OK);
     }
-    @PostMapping("/members/{memberId}/profile")
-    public ResponseEntity<ResultDTO> saveProfile(@PathVariable(name = "memberId") Long memberId,
+    @PostMapping("/auth/profile")
+    @Operation(summary = "프로필 이미지 저장 api")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "10000", description = "Successful",
+                    content = {@io.swagger.v3.oas.annotations.media.Content(mediaType = "application/json")}),
+            @ApiResponse(responseCode = "10005", description = "회원가입이 되어있지않은 계정입니다."),
+            @ApiResponse(responseCode = "10009", description = "프로필 저장을 실패했습니다. 다시 시도해주세요."),
+    })
+    public ResponseEntity<ResultDTO> saveProfile(@Parameter(hidden = true) LoginMemberInfo loginMemberInfo,
                                                  @RequestParam(name = "profile") MultipartFile file){
-        memberService.saveProfile(memberId, file);
+        memberService.saveProfile(loginMemberInfo.getMemberId(), file);
         return new ResponseEntity<>(ResultDTO.of(10000, "프로필 저장을 완료했습니다.", null), HttpStatus.OK);
     }
 

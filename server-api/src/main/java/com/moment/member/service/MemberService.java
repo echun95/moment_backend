@@ -1,16 +1,15 @@
 package com.moment.member.service;
 
-import com.moment.common.dto.ResultDTO;
 import com.moment.member.dto.JoinMemberDTO;
 import com.moment.member.dto.LoginDTO;
 import com.moment.member.dto.ReqEmailDTO;
-import com.moment.member.dto.ReqMemberInfo;
+import com.moment.member.dto.ResMemberInfo;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface MemberService {
     void sendAuthenticationEmail(ReqEmailDTO reqEmailDTO);
 
-    ResultDTO<Object> verifyEmail(String email, String code);
+    void verifyEmail(String email, String code);
 
     void join(JoinMemberDTO joinMemberDTO);
 
@@ -18,7 +17,7 @@ public interface MemberService {
 
     void resetPassword(String email);
 
-    ReqMemberInfo getMemberInfo(Long memberId);
+    ResMemberInfo getMemberInfo(Long memberId);
 
     void modifyPassword(Long memberId, String password);
 

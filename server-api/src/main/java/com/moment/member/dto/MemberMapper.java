@@ -3,8 +3,8 @@ package com.moment.member.dto;
 import com.moment.entity.Member;
 
 public class MemberMapper {
-    public static ReqMemberInfo toDto(Member member){
-        return ReqMemberInfo.builder()
+    public static ResMemberInfo toDto(Member member){
+        return ResMemberInfo.builder()
                 .memberId(member.getMemberId())
                 .email(member.getEmail())
                 .name(member.getName())
