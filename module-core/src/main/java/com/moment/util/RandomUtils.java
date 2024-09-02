@@ -31,11 +31,12 @@ public class RandomUtils {
     public String generateTemporaryPassword() {
         Random random = new Random();
         StringBuilder stringBuilder = new StringBuilder(TEMPORARY_PASSWORD_LENGTH);
-        for (int i = 0; i < TEMPORARY_PASSWORD_LENGTH; i++) {
-            String randomStr = CHARACTERS + SPECIAL_CHARACTERS;
-            int index = random.nextInt(randomStr.length());
-            stringBuilder.append(randomStr.charAt(index));
+        for (int i = 0; i < TEMPORARY_PASSWORD_LENGTH - 1; i++) {
+            int index = random.nextInt(CHARACTERS.length());
+            stringBuilder.append(CHARACTERS.charAt(index));
         }
+        int specialIndex = random.nextInt(SPECIAL_CHARACTERS.length());
+        stringBuilder.append(SPECIAL_CHARACTERS.charAt(specialIndex));
         return stringBuilder.toString();
     }
 }

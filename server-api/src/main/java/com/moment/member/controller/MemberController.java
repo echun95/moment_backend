@@ -133,7 +133,7 @@ public class MemberController {
             @ApiResponse(responseCode = "10009", description = "프로필 저장을 실패했습니다. 다시 시도해주세요."),
     })
     public ResponseEntity<ResultDTO> saveProfile(@Parameter(hidden = true) LoginMemberInfo loginMemberInfo,
-                                                 @RequestParam(name = "profile") MultipartFile file){
+                                                 @RequestPart(name = "profile") MultipartFile file){
         memberService.saveProfile(loginMemberInfo.getMemberId(), file);
         return new ResponseEntity<>(ResultDTO.of(10000, "프로필 저장을 완료했습니다.", null), HttpStatus.OK);
     }

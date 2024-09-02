@@ -49,7 +49,7 @@ public class AuthEntryPointHandler implements AuthenticationEntryPoint {
                     .build();
         }
 
-        log.warn("Unauthorized error: {}", authException.getMessage());
+        log.error("Unauthorized error: {}", authException.getMessage());
         final ObjectMapper mapper = new ObjectMapper();
         mapper.writeValue(response.getOutputStream(), errorResponse);
     }
