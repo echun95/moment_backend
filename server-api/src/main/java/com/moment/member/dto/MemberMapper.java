@@ -14,6 +14,7 @@ public class MemberMapper {
                 .birth(member.getBirth())
                 .userCode(member.getUserCode())
                 .connectionUserCode(member.getConnectionUserCode())
+                .isCouple(member.isCouple())
                 .build();
     }
 }

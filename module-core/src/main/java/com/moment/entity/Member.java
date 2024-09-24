@@ -58,6 +58,10 @@ public class Member extends BaseEntity {
     @Column(name = "REFRESH_TOKEN")
     private String refreshToken;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "COUPLE_ID")
+    private Couple couple;
+
     @Builder
     public Member(Long memberId, String name, String password, String email, String phoneNumber, Gender gender, String profileImageUrl, LocalDate birth, String userCode, String connectionUserCode, Role role, String provider, String providerId, String refreshToken) {
         this.memberId = memberId;
@@ -84,5 +88,11 @@ public class Member extends BaseEntity {
     }
     public void changeProfile(String profileImageUrl) {
         this.profileImageUrl = profileImageUrl;
+    }
+    public Boolean isCouple(){
+        return this.couple != null ? true : false;
+    }
+    public void createCouple(Couple couple){
+        this.couple = couple;
     }
 }
