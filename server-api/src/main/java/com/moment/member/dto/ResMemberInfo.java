@@ -19,9 +19,11 @@ public class ResMemberInfo {
     private LocalDate birth;
     private String userCode;
     private String connectionUserCode;
+    private Boolean isCouple;
 
     @Builder
-    public ResMemberInfo(Long memberId, String email, String name, String phoneNumber, Gender gender, String profileImageUrl, LocalDate birth, String userCode, String connectionUserCode) {
+    public ResMemberInfo(Long memberId, String email, String name, String phoneNumber, Gender gender, String profileImageUrl, LocalDate birth, String userCode, String connectionUserCode,
+                         Boolean isCouple) {
         this.memberId = memberId;
         this.email = email;
         this.name = name;
@@ -31,5 +33,6 @@ public class ResMemberInfo {
         this.birth = birth;
         this.userCode = userCode;
         this.connectionUserCode = connectionUserCode;
+        this.isCouple = isCouple;
     }
 }
