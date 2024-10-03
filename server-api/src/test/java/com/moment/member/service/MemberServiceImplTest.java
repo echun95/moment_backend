@@ -63,7 +63,6 @@ class MemberServiceImplTest {
         memberRepository.save(femaleMember);
     }
 
-
     @Test
     void verifyEmail() throws Exception  {
         //given
@@ -78,6 +77,4 @@ class MemberServiceImplTest {
         ResMemberInfo memberInfo = memberService.getMemberInfo(1L);
         Assertions.assertThat(memberInfo.getIsCouple()).isTrue();
     }
-
-
 }

@@ -128,7 +128,7 @@ public class MemberController {
     @Operation(summary = "프로필 이미지 저장 api")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "10000", description = "Successful",
-                    content = {@io.swagger.v3.oas.annotations.media.Content(mediaType = "application/json")}),
+                    content = {@io.swagger.v3.oas.annotations.media.Content(mediaType = "multipart/form-data")}),
             @ApiResponse(responseCode = "10005", description = "회원가입이 되어있지않은 계정입니다."),
             @ApiResponse(responseCode = "10009", description = "프로필 저장을 실패했습니다. 다시 시도해주세요."),
     })

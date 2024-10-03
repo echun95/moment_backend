@@ -15,7 +15,7 @@ public class mailTest {
     private String senderEmail= "dldydcns123@gmail.com";
     private static int number;
 
-//    @Test
+    @Test
     void sendMailTest() throws MessagingException {
         emailService.sendEmailCertification(senderEmail, createNumber());
     }
