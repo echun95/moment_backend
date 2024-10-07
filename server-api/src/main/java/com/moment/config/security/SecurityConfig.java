@@ -58,7 +58,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/auth/join").permitAll()
                 .requestMatchers("/api/v1/auth/send-authentication-email").permitAll()
                 .requestMatchers("/api/v1/auth/verify-email").permitAll()
-                .requestMatchers("/swagger", "/swagger-ui.html", "/swagger-ui/**", "/api-docs", "/api-docs/**", "/v3/api-docs/**").permitAll()
+                .requestMatchers("/swagger", "/swagger-ui.html", "/swagger-ui/**", "/api-docs", "/api-docs/**", "/v3/api-docs/**", "/docs/**").permitAll()
                 .requestMatchers("/", "/error", "/favicon.ico", "*.png", "*.gif", "*.svg", "*.jpg", "*.html", "*.css", "*.js").permitAll()
                 .requestMatchers(HttpMethod.GET, "/test/**").authenticated()
                 .requestMatchers("/admin/**").hasRole(ROLE_ADMIN)

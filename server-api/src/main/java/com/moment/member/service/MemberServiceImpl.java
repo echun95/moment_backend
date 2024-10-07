@@ -186,7 +186,7 @@ public class MemberServiceImpl implements MemberService {
 
     private Member getMemberByEmail(String email) {
         return memberRepository.findByEmail(email)
-                .orElseThrow(() -> new RestApiException(MemberErrorCode.FAILED_LOGIN));
+                .orElseThrow(() -> new RestApiException(MemberErrorCode.NOT_FOUND_MEMBER));
     }
 
     private void validatePassword(String rawPassword, String encodedPassword) {

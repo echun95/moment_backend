@@ -1,6 +1,8 @@
 plugins {
     id 'java'
     id 'org.asciidoctor.jvm.convert' version '3.3.2'
+    id 'com.epages.restdocs-api-spec' version '0.18.4'
+    id 'org.hidetake.swagger.generator' version '2.18.2'
 }
 
 group 'com.moment'
@@ -24,8 +26,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
     //rest docs
-    asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor' // (4)
+    asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+    testImplementation 'com.epages:restdocs-api-spec-mockmvc:0.18.4'
+    testImplementation 'com.squareup.okhttp3:mockwebserver'
 
     //validation
     implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -40,24 +44,59 @@ dependencies {
     runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.5'
     runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.11.5'
 }
+
+openapi3 {
+    servers = [
+            { url = 'http://localhost:8080' },
+            { url = 'http://43.203.84.215:8080' }
+    ]
+    title = 'Moment API'
+    description = 'Moment API description'
+    version = '1.0.0'
+    format = 'json'
+    outputFileNamePrefix = 'open-api-3.0.1'
+    outputDirectory = 'build/resources/main/static/docs'
+}
+tasks.withType(GenerateSwaggerUI).configureEach {
+    dependsOn 'openapi3'
+//    기존 파일 삭제했다가, build 에 출력한 json 정적파일 복사 (안해도 됨 → local 확인용)
+    delete file('src/main/resources/static/docs/')
+    copy {
+        from "build/resources/main/static/docs"
+        into "src/main/resources/static/docs/"
+    }
+}
+// 테스트를 통해 생성된 snippets 출력 위치 정의
+tasks.register("ext") {
+    snippetsDir = file('build/generated-snippets')
+}
 tasks.named('test') {
+    useJUnitPlatform()
     outputs.dir snippetsDir // (6)
+}
+// 기존에 존재하던 docs 삭제
+asciidoctor.doFirst {
+    delete file('src/main/resources/static/docs')
 }
 tasks.named('asciidoctor') {
     inputs.dir snippetsDir
     configurations 'asciidoctorExt'
-    sources{
-        include("**/index.adoc")
-    }
-    baseDirFollowsSourceFile()
     dependsOn test
 }
-test {
-    useJUnitPlatform()
-}
-bootJar {
+tasks.named("bootJar") {
     dependsOn asciidoctor
     from("${asciidoctor.outputDir}") {
         into 'static/docs'
     }
+    dependsOn('openapi3')
+}
+
+tasks.register('copyDocument', Copy) {
+    dependsOn asciidoctor
+    from file("$buildDir/docs/asciidoc")
+    into file("src/main/resources/static/docs")
+}
+
+tasks.named("build") {
+    dependsOn copyDocument
 }

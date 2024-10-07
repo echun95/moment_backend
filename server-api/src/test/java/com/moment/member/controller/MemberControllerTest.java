@@ -1,9 +1,14 @@
 package com.moment.member.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.moment.common.exception.RestApiException;
 import com.moment.common.exception.member.MemberErrorCode;
 import com.moment.enums.Gender;
+import com.moment.enums.Role;
+import com.moment.member.dto.JoinMemberDTO;
+import com.moment.member.dto.LoginDTO;
+import com.moment.member.dto.ReqEmailDTO;
 import com.moment.member.dto.ResMemberInfo;
 import com.moment.member.service.MemberService;
 import io.jsonwebtoken.Claims;
@@ -24,18 +29,22 @@ import org.springframework.http.MediaType;
 import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+
 
 import java.security.Key;
 import java.time.LocalDate;
 import java.util.Date;
 
-import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
-import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
-import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
+
+import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -80,7 +89,7 @@ public class MemberControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(status().isOk())
-                .andDo(document("getMemberInfo",
+                .andDo(document("내 정보 조회 성공",
                         responseFields(
                                 fieldWithPath("code").description("응답 코드"),
                                 fieldWithPath("message").description("응답 메시지"),
@@ -105,7 +114,205 @@ public class MemberControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(status().isOk())
-                .andDo(document("getMemberInfo-not-found",
+                .andDo(document("존재하지 않는 계정 오류",
+                        responseFields(
+                                fieldWithPath("code").description("응답 코드"),
+                                fieldWithPath("message").description("응답 메시지")
+                        )
+                ));
+    }
+
+    @Test
+    @DisplayName("인증 메일 발송 api")
+    void sendAuthenticationEmail() throws Exception {
+        Mockito.doNothing().when(memberService).sendAuthenticationEmail(Mockito.any());
+        String content = objectMapper.writeValueAsString(new ReqEmailDTO("test@gmail.com"));
+
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/v1/auth/send-authentication-email")
+                        .content(content)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isOk())
+                .andDo(document("인증 메일 발송 성공",
+                        requestFields(
+                                fieldWithPath("email").description("email")
+                        ),
+                        responseFields(
+                                fieldWithPath("code").description("응답 코드"),
+                                fieldWithPath("message").description("응답 메시지"),
+                                fieldWithPath("data").description("응답 데이터")
+                        )
+                ));
+        Mockito.doThrow(new RestApiException(MemberErrorCode.ALREADY_BEEN_JOIN)).when(memberService).sendAuthenticationEmail(Mockito.any());
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/v1/auth/send-authentication-email")
+                        .content(content)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isOk())
+                .andDo(document("이미 회원가입이 되어있는 계정 오류",
+                        requestFields(
+                                fieldWithPath("email").description("email")
+                        ),
+                        responseFields(
+                                fieldWithPath("code").description("응답 코드"),
+                                fieldWithPath("message").description("응답 메시지")
+                        )
+                ));
+        Mockito.doThrow(new RestApiException(MemberErrorCode.FAILED_SEND_AUTHENTICATION_EMAIL)).when(memberService).sendAuthenticationEmail(Mockito.any());
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/v1/auth/send-authentication-email")
+                        .content(content)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isOk())
+                .andDo(document("인증 메일 발송 오류",
+                        requestFields(
+                                fieldWithPath("email").description("email")
+                        ),
+                        responseFields(
+                                fieldWithPath("code").description("응답 코드"),
+                                fieldWithPath("message").description("응답 메시지")
+                        )
+                ));
+    }
+
+    @Test
+    @DisplayName("이메일 인증 api")
+    void verifyEmail() throws Exception {
+        Mockito.doNothing().when(memberService).verifyEmail(Mockito.any(), Mockito.any());
+        MultiValueMap<String, String> requestParams = new LinkedMultiValueMap<>();
+        requestParams.add("email", "test@gmail.com");
+        requestParams.add("code", "CODE123");
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/v1/auth/verify-email")
+                        .params(requestParams)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isOk())
+                .andDo(document("이메일 인증 성공",
+                        queryParameters(
+                                parameterWithName("email").description("사용자 이메일"),
+                                parameterWithName("code").description("인증 코드")
+                        ),
+                        responseFields(
+                                fieldWithPath("code").description("응답 코드"),
+                                fieldWithPath("message").description("응답 메시지"),
+                                fieldWithPath("data").description("응답 데이터")
+                        )
+                ));
+        Mockito.doThrow(new RestApiException(MemberErrorCode.FAILED_VERIFY_EMAIL)).when(memberService).verifyEmail(Mockito.any(), Mockito.any());
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/v1/auth/verify-email")
+                        .params(requestParams)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isOk())
+                .andDo(document("이메일 인증 오류",
+                        queryParameters(
+                                parameterWithName("email").description("사용자 이메일"),
+                                parameterWithName("code").description("인증 코드")
+                        ),
+                        responseFields(
+                                fieldWithPath("code").description("응답 코드"),
+                                fieldWithPath("message").description("응답 메시지")
+                        )
+                ));
+    }
+
+    @Test
+    @DisplayName("회원가입 api")
+    void join() throws Exception  {
+        Mockito.doNothing().when(memberService).join(Mockito.any());
+        String content = objectMapper.writeValueAsString(new JoinMemberDTO("test@gmail.com", "password", "testName", Gender.MALE, LocalDate.now()));
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/v1/auth/join")
+                        .content(content)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isOk())
+                .andDo(document("회원가입 성공",
+                        responseFields(
+                                fieldWithPath("code").description("응답 코드"),
+                                fieldWithPath("message").description("응답 메시지"),
+                                fieldWithPath("data").description("응답 데이터")
+                        )
+                ));
+        Mockito.doThrow(new RestApiException(MemberErrorCode.DUPLICATE_MEMBER)).when(memberService).join(Mockito.any());
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/v1/auth/join")
+                        .content(content)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isOk())
+                .andDo(document("이미 회원가입이 된 계정 오류",
+                        responseFields(
+                                fieldWithPath("code").description("응답 코드"),
+                                fieldWithPath("message").description("응답 메시지")
+                        )
+                ));
+    }
+    @Test
+    @DisplayName("로그인 api")
+    void login() throws Exception  {
+        Mockito.when(memberService.login(Mockito.any())).thenReturn(LoginDTO.ResLoginDTO.builder()
+                        .accessToken("accessJWT")
+                        .userRole(Role.ROLE_USER)
+                        .userName("userName")
+                        .tempPasswordActive(false)
+                .build());
+        String content = objectMapper.writeValueAsString(new LoginDTO.ReqLoginDTO("test@gmail.com", "password"));
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/v1/auth/login")
+                        .content(content)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isOk())
+                .andDo(document("로그인 성공",
+                        responseFields(
+                                fieldWithPath("code").description("응답 코드"),
+                                fieldWithPath("message").description("응답 메시지"),
+                                fieldWithPath("data.accessToken").description("로그인 성공 시 응답되는 JWT"),
+                                fieldWithPath("data.userRole").description("유저 권한"),
+                                fieldWithPath("data.userName").description("유저 이름"),
+                                fieldWithPath("data.tempPasswordActive").description("임시 비밀번호 사용 유무")
+                        )
+                ));
+        Mockito.doThrow(new RestApiException(MemberErrorCode.NOT_FOUND_MEMBER)).when(memberService).login(Mockito.any());
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/v1/auth/login")
+                        .content(content)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isOk())
+                .andDo(document("회원가입 되어있지 않은 계정 오류",
+                        responseFields(
+                                fieldWithPath("code").description("응답 코드"),
+                                fieldWithPath("message").description("응답 메시지")
+                        )
+                ));
+        Mockito.doThrow(new RestApiException(MemberErrorCode.FAILED_AUTHENTICATION_TEMPORARY_PASSWORD)).when(memberService).login(Mockito.any());
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/v1/auth/login")
+                        .content(content)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isOk())
+                .andDo(document("임시 비밀번호 오류",
+                        responseFields(
+                                fieldWithPath("code").description("응답 코드"),
+                                fieldWithPath("message").description("응답 메시지")
+                        )
+                ));
+        Mockito.doThrow(new RestApiException(MemberErrorCode.FAILED_VALIDATE_PASSWORD)).when(memberService).login(Mockito.any());
+        mockMvc.perform(RestDocumentationRequestBuilders.post("/api/v1/auth/login")
+                        .content(content)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().isOk())
+                .andDo(document("비밀번호 오류",
                         responseFields(
                                 fieldWithPath("code").description("응답 코드"),
                                 fieldWithPath("message").description("응답 메시지")
